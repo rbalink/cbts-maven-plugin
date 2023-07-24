@@ -1,6 +1,7 @@
 package com.tub;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -12,12 +13,15 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 //lifecycle phase in maven
 @Mojo(name="cbts_prototype", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
 public class CBTSPrototypePlugin extends AbstractMojo {	
 	public final String mainRepo = "https://github.com/rbalink/CBTS_Test";
-	public final String localPathMainRepo = "C:\\Users\\rob80186\\Desktop\\gittest";
+	public final static String localPathMainRepo = "C:\\Users\\rob80186\\Documents\\GitHub\\flow";
 	public List<File> javaFilesMain;
 	public List<File> javaFilesTest;
 	public static HashSet<TestWrapper> testSet;
@@ -35,9 +39,7 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 		
 		testSet = new HashSet<TestWrapper>();
 		
-//		String test = "test";
-//		byte[] bytes = test.getBytes();
-//		System.out.println(bytes);
+		getGitDiff();
 		
 	    //List of all files and directories
 	   
@@ -143,5 +145,17 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 			}
 		}
 		return javaFiles;
+	}
+	
+	private static void getGitDiff() {
+		File file = new File(localPathMainRepo, ".git");
+		try {
+			Repository repo = FileRepositoryBuilder.create(file);
+			repo.create();
+			Git git = new Git(repo);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
