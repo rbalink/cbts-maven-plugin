@@ -2,6 +2,7 @@ package com.tub;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -19,6 +20,8 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 	public final String localPathMainRepo = "C:\\Users\\rob80186\\Desktop\\gittest";
 	public List<File> javaFilesMain;
 	public List<File> javaFilesTest;
+	public static HashSet<TestWrapper> testSet;
+	public static String srcFolder;
 	
 	
 	
@@ -30,6 +33,7 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 		String currentPath = System.getProperty("user.dir");
 		File directoryPath = new File(currentPath);
 		
+		testSet = new HashSet<TestWrapper>();
 		
 //		String test = "test";
 //		byte[] bytes = test.getBytes();
@@ -44,7 +48,7 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 	    // src / test
 		
 	    // gehe Baumstruktur ab --- finde src Ordner
-		String srcFolder = findFolder(directoryPath);
+		srcFolder = findFolder(directoryPath);
 		if(srcFolder == null) {
 			getLog().error("Kein Source Ordner!");
 		}
@@ -61,8 +65,9 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 			javaFilesTest = findJavaFiles(new File(testFolder));
 		}
 		
-		
-		ReadTestFiles.collectFiles(javaFilesTest);
+		//liest alle test .java Dateien 
+		ReadTestFiles.collectTestFiles(javaFilesTest, testSet);
+		ReadSourceCode.analyzeCode(javaFilesMain, testSet);
 		
 	    //gedanken: für die Klassen einen Graphen
 	    // in den tests die Tests zählen und kategorisieren = vergleich zu klassen
@@ -125,7 +130,7 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 	 * @param directory
 	 * @return
 	 */
-	private static List<File> findJavaFiles(File directory){
+	public static List<File> findJavaFiles(File directory){
 		List<File> javaFiles = new ArrayList<File>();
 		File[] files = directory.listFiles();
 		if(files != null) {

@@ -11,7 +11,7 @@
   <goalPrefix>cbts</goalPrefix>
   <mojos>
     <mojo>
-      <goal>cbts</goal>
+      <goal>cbts_prototype</goal>
       <requiresDirectInvocation>false</requiresDirectInvocation>
       <requiresProject>true</requiresProject>
       <requiresReports>false</requiresReports>
