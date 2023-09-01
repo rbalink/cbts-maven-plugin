@@ -54,9 +54,12 @@ public class ReadTestFiles {
 			methodDeclarations = td.findAll(MethodDeclaration.class);
 		}
 
+
+		String filepath = cu.getStorage().get().getFileName();
+		
 		for (MethodDeclaration md : methodDeclarations) {
 			if (md.getAnnotations().isNonEmpty() && md.getAnnotations().toString().equals("[@Test]")) {
-				TestWrapper neuerTest = new TestWrapper(md.getName(), packageDeclaration, md.getBody());
+				TestWrapper neuerTest = new TestWrapper(md.getName(), packageDeclaration, md.getBody(), filepath);
 				testSet.add(neuerTest);
 			}
 		}
