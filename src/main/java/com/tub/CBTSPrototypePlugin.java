@@ -13,6 +13,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -24,7 +25,11 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
 //lifecycle phase in maven
 @Mojo(name="cbts_prototype", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
-public class CBTSPrototypePlugin extends AbstractMojo {	
+public class CBTSPrototypePlugin extends AbstractMojo {
+	
+	@Parameter(property = "mode", required = false, defaultValue = "classic")
+	private String mode;
+	
 	public final String mainRepo = "https://github.com/rbalink/CBTS_Test";
 	public final static String localPathMainRepo = "C:\\Users\\rob80186\\Documents\\GitHub\\flow";
 	public List<File> javaFilesMain;
@@ -32,24 +37,25 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 	public static HashSet<TestWrapper> testSet;
 	public static String srcFolder;
 	public static List<DiffEntry> gitDiffList;
+	private static long startTime;
 	
 	
-	
+	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		getLog().info("*** cbts prototype BEGIN ***");
-		long start = System.currentTimeMillis();
-		long start2 = System.nanoTime();
-		// + + + Step 1 - setting up paths and initiate objects
+
+		
+		// + + + Step 1 - Set up paths and initiate objectscalculateTime();
+		getLog().info("*** cbts prototype BEGIN *** mode: "+this.mode+" ***");
+		checkIfPossibleMode(mode);
 		String currentPath = System.getProperty("user.dir");
 		File directoryPath = new File(currentPath);
-		//TODO: FLAG
 		gitDiffList = new ArrayList<DiffEntry>();
 		testSet = new HashSet<TestWrapper>();
+		
 		
 		// + + + Step 2 - get delta between current and main git branch
 		getGitDiff();
 		
-	    
 		
 	    // + + + Step 3 - find src dir in current branch
 		srcFolder = findFolder(directoryPath);
@@ -61,21 +67,14 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 		
 		// + + + Step 4 - reads all .java files for test and source code
 		ReadTestFiles.collectTestFiles(javaFilesTest, testSet);
-		// + + + Step 5 - analyze source code
-
-		//TODO: if else flag
-		ReadSourceCode.analyzeCode(javaFilesMain, testSet);
 		
-	    //gedanken: für die Klassen einen Graphen
-	    // in den tests die Tests zählen und kategorisieren = vergleich zu klassen
-	    // ermitteln was neue änderungen sind mit ALTEM stand !
-
-		long finish = System.currentTimeMillis();
-		long timeElapsed = finish - start;
-
-		long finish2 = System.nanoTime();
-		long timeElapsed2 = finish2 - start2;
-		getLog().info("*** cbts prototype ENDS *** Time X Elapsed: "+timeElapsed+" ms --- NanoTime:"+timeElapsed2);
+		
+		// + + + Step 5 - analyze source code
+		ReadSourceCode.analyzeCode(this.mode, javaFilesMain, testSet, gitDiffList);
+		
+		// + + + Step 6 - Output
+		//TODO
+		getLog().info("*** cbts prototype ENDS *** Time Elapsed: "+calculateTime()+" ms");
 		
 	}
 	
@@ -194,8 +193,6 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 			// Simply display the diff between the two commits
 			System.out.println("+++ GIT DIFF START +++");
 			for (DiffEntry diff : listDiffs) {
-			        System.out.println(diff);
-			        System.out.println(diff.getNewPath());
 			        gitDiffList.add(diff);
 			}
 			System.out.println("+++ GIT DIFF END +++");
@@ -227,4 +224,30 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 					}
 					
 	}
+	
+	/**
+	 * checks if the parameter mode is either classic or sideeffect, else the plugin will return an error
+	 * @param mode
+	 */
+	private static void checkIfPossibleMode(String mode) {
+		if(!((mode.equals("classic"))||(mode.equals("sideeffect")))) {
+			throw new IllegalArgumentException();
+		}
+			
+	}
+	
+	/**
+	 * calculates runtime of the plugin
+	 * @return
+	 */
+	private static long calculateTime() {
+		if(startTime == 0L) {
+			startTime= System.currentTimeMillis();
+			return 0L;
+		}else {
+			long finish = System.currentTimeMillis();
+			return finish - startTime;
+		}
+	}
+	
 }

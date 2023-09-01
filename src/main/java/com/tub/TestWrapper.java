@@ -1,5 +1,8 @@
 package com.tub;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import com.github.javaparser.ast.PackageDeclaration;
@@ -10,13 +13,14 @@ public class TestWrapper {
 
 	public SimpleName name;
 	public Optional<PackageDeclaration> path;
-	public String absolutPathSourceCode;
-	public String absolutePathTestCode;
+	public Path sourceCodePath;
+	public Path testCodePath;
 	public String fileNameTestCode;
 	public Optional<BlockStmt> content;
 	public int probability;
 	public String cfg;
 	public boolean sideeffectedCode;
+	public boolean unableToMatchSourceCodePath;
 
 	public TestWrapper(SimpleName simpleName, Optional<PackageDeclaration> packageDeclaration,
 			Optional<BlockStmt> optional, String fileName) {
@@ -58,28 +62,35 @@ public class TestWrapper {
 
 	/**
 	 * find corresponding sourceCode to TestCode (MATCHING)
-	 * IMPORTANT: HARDCODE SECTION
+	 * Gedanken: sourceCode ist verändert aber TestCode nicht
+	 * Aber jeder TestCode muss ein SourceCode haben - Ein "Source Code" kann mehrere "TestCode" haben
 	 */
 	private void buildPath() {
 		try {
-			String currentPath = CBTSPrototypePlugin.srcFolder + "\\main\\java\\";
-			String currentPathTestcode = CBTSPrototypePlugin.srcFolder + "\\test\\java\\";
 			String subfolder = this.path.toString().split("\\s+")[1].replace(".", "\\").replace(";", "");
-			System.out.println(subfolder);
-			System.out.println(currentPath + subfolder);
-			this.absolutPathSourceCode = currentPath + subfolder;
-			this.absolutePathTestCode = currentPathTestcode + subfolder;
-			
 			String fileNameRaw = this.fileNameTestCode.split(".java")[0];
-			if(fileNameRaw.contains("IT")) {
-				fileNameRaw.replace("IT", "View.java");
-			}else if(fileNameRaw.contains("Test")) {
-				fileNameRaw.replace("Test", ".java");
-			}else {
+			String newRawName = "";
+			if (fileNameRaw.contains("IT")) {
+				newRawName = fileNameRaw.replace("IT", "View.java");
+			} else if (fileNameRaw.contains("Test")) {
+				newRawName = fileNameRaw.replace("Test", ".java");
+			} else {
 				System.err.println("KEIN KORRESPONDIERENDER TEST");
 			}
-			System.out.println("CORRESPONDING FILENAME: "+fileNameRaw);
+
 			
+			sourceCodePath = Paths.get(CBTSPrototypePlugin.srcFolder, "main", "java", subfolder, newRawName);
+			if(!Files.exists(sourceCodePath)) {
+				sourceCodePath = null;
+				this.unableToMatchSourceCodePath = true;
+			}else {
+				this.unableToMatchSourceCodePath = false;
+			}
+			
+			testCodePath = Paths.get(CBTSPrototypePlugin.srcFolder, "test", "java", subfolder, this.fileNameTestCode);
+			if(!Files.exists(testCodePath)) {
+				throw new IllegalArgumentException();
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();

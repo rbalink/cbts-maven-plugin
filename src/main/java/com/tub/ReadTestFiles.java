@@ -65,7 +65,7 @@ public class ReadTestFiles {
 		}
 
 		for (TestWrapper tw : testSet) {
-			System.out.println(tw.toString());
+			//System.out.println(tw.toString());
 		}
 	}
 }
