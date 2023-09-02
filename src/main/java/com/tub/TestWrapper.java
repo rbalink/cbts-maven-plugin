@@ -153,9 +153,10 @@ public class TestWrapper {
 		}
 
 	}
-	
+
 	public String getInfoText() {
-		return "Test: "+this.name.asString()+" --- filename: "+this.fileNameTestCode+" source code path: "+ this.getSourceCodePath();
+		return "Test: " + this.name.asString() + " --- filename: " + this.fileNameTestCode + " source code path: "
+				+ this.getSourceCodePath();
 	}
 
 }
