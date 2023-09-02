@@ -37,7 +37,9 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 	public static HashSet<TestWrapper> testSet;
 	public static String srcFolder;
 	public static List<DiffEntry> gitDiffList;
+	public static HashSet<TestWrapper> result;
 	private static long startTime;
+	
 	
 	
 	@Override
@@ -50,6 +52,7 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 		String currentPath = System.getProperty("user.dir");
 		File directoryPath = new File(currentPath);
 		gitDiffList = new ArrayList<DiffEntry>();
+		
 		testSet = new HashSet<TestWrapper>();
 		
 		
@@ -70,10 +73,10 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 		
 		
 		// + + + Step 5 - analyze source code
-		ReadSourceCode.analyzeCode(this.mode, javaFilesMain, testSet, gitDiffList);
+		result = ReadSourceCode.analyzeCode(this.mode, javaFilesMain, testSet, gitDiffList);
 		
 		// + + + Step 6 - Output
-		//TODO
+		getResultText(result);
 		getLog().info("*** cbts prototype ENDS *** Time Elapsed: "+calculateTime()+" ms");
 		
 	}
@@ -247,6 +250,12 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 		}else {
 			long finish = System.currentTimeMillis();
 			return finish - startTime;
+		}
+	}
+	
+	private static void getResultText(HashSet<TestWrapper> results) {
+		for(TestWrapper tw : results) {
+			System.out.println(tw.getInfoText());
 		}
 	}
 	

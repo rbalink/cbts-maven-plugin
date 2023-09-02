@@ -11,16 +11,16 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 
 public class TestWrapper {
 
-	public SimpleName name;
-	public Optional<PackageDeclaration> path;
-	public Path sourceCodePath;
-	public Path testCodePath;
-	public String fileNameTestCode;
-	public Optional<BlockStmt> content;
-	public int probability;
-	public String cfg;
-	public boolean sideeffectedCode;
-	public boolean unableToMatchSourceCodePath;
+	private SimpleName name;
+	private Optional<PackageDeclaration> path;
+	private Path sourceCodePath;
+	private Path testCodePath;
+	private String fileNameTestCode;
+	private Optional<BlockStmt> content;
+	private int probability;
+	private String cfg;
+	private boolean sideeffectedCode;
+	private boolean unableToMatchSourceCodePath;
 
 	public TestWrapper(SimpleName simpleName, Optional<PackageDeclaration> packageDeclaration,
 			Optional<BlockStmt> optional, String fileName) {
@@ -60,10 +60,66 @@ public class TestWrapper {
 				+ this.content.toString();
 	}
 
+	public Path getSourceCodePath() {
+		return sourceCodePath;
+	}
+
+	public void setSourceCodePath(Path sourceCodePath) {
+		this.sourceCodePath = sourceCodePath;
+	}
+
+	public Path getTestCodePath() {
+		return testCodePath;
+	}
+
+	public void setTestCodePath(Path testCodePath) {
+		this.testCodePath = testCodePath;
+	}
+
+	public String getFileNameTestCode() {
+		return fileNameTestCode;
+	}
+
+	public void setFileNameTestCode(String fileNameTestCode) {
+		this.fileNameTestCode = fileNameTestCode;
+	}
+
+	public int getProbability() {
+		return probability;
+	}
+
+	public void setProbability(int probability) {
+		this.probability = probability;
+	}
+
+	public String getCfg() {
+		return cfg;
+	}
+
+	public void setCfg(String cfg) {
+		this.cfg = cfg;
+	}
+
+	public boolean isSideeffectedCode() {
+		return sideeffectedCode;
+	}
+
+	public void setSideeffectedCode(boolean sideeffectedCode) {
+		this.sideeffectedCode = sideeffectedCode;
+	}
+
+	public boolean isUnableToMatchSourceCodePath() {
+		return unableToMatchSourceCodePath;
+	}
+
+	public void setUnableToMatchSourceCodePath(boolean unableToMatchSourceCodePath) {
+		this.unableToMatchSourceCodePath = unableToMatchSourceCodePath;
+	}
+
 	/**
-	 * find corresponding sourceCode to TestCode (MATCHING)
-	 * Gedanken: sourceCode ist verändert aber TestCode nicht
-	 * Aber jeder TestCode muss ein SourceCode haben - Ein "Source Code" kann mehrere "TestCode" haben
+	 * find corresponding sourceCode to TestCode (MATCHING) Gedanken: sourceCode ist
+	 * verändert aber TestCode nicht Aber jeder TestCode muss ein SourceCode haben -
+	 * Ein "Source Code" kann mehrere "TestCode" haben
 	 */
 	private void buildPath() {
 		try {
@@ -75,28 +131,31 @@ public class TestWrapper {
 			} else if (fileNameRaw.contains("Test")) {
 				newRawName = fileNameRaw.replace("Test", ".java");
 			} else {
-				System.err.println("KEIN KORRESPONDIERENDER TEST");
+				newRawName = "ErrorX1";
 			}
 
-			
 			sourceCodePath = Paths.get(CBTSPrototypePlugin.srcFolder, "main", "java", subfolder, newRawName);
-			if(!Files.exists(sourceCodePath)) {
+			if (!Files.exists(sourceCodePath)) {
 				sourceCodePath = null;
 				this.unableToMatchSourceCodePath = true;
-			}else {
+			} else {
 				this.unableToMatchSourceCodePath = false;
 			}
-			
+
 			testCodePath = Paths.get(CBTSPrototypePlugin.srcFolder, "test", "java", subfolder, this.fileNameTestCode);
-			if(!Files.exists(testCodePath)) {
+			if (!Files.exists(testCodePath)) {
 				throw new IllegalArgumentException();
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.err.println("BUILD PATH ERROR");
 		}
 
+	}
+	
+	public String getInfoText() {
+		return "Test: "+this.name.asString()+" --- filename: "+this.fileNameTestCode+" source code path: "+ this.getSourceCodePath();
 	}
 
 }
