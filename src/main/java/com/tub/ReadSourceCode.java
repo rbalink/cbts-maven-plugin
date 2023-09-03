@@ -37,9 +37,8 @@ public class ReadSourceCode {
 		unchangedJavaFiles = new ArrayList<File>();
 		HashSet<TestWrapper> result = new HashSet<TestWrapper>();
 
-		
 		analyzePOMFile();
-		
+
 		if (mode.equals("classic")) {
 
 			// compare gitDiff with relevant sourceCode
@@ -76,7 +75,7 @@ public class ReadSourceCode {
 			return result;
 
 		} else if (mode.equals("sideeffect")) {
-			
+
 			for (DiffEntry de : gitDiffList) {
 				boolean found = false;
 				Path diffPath = Paths.get(de.getNewPath());
@@ -94,19 +93,19 @@ public class ReadSourceCode {
 				}
 			}
 			// filter out all changed objects from effectedJavaFiles
-			for(File file : javaFilesMain) {
+			for (File file : javaFilesMain) {
 				boolean unchanged = true;
-				for(File file2 : effectedJavaFiles) {
-					if(file2.getPath().equals(file.getPath())){
+				for (File file2 : effectedJavaFiles) {
+					if (file2.getPath().equals(file.getPath())) {
 						unchanged = false;
 						break;
 					}
 				}
-				if(unchanged) {
+				if (unchanged) {
 					unchangedJavaFiles.add(file);
 				}
 			}
-			
+
 			// collect tests of unchangedJavaFiles
 			for (File file : unchangedJavaFiles) {
 				for (TestWrapper tw : testSet) {
@@ -117,7 +116,7 @@ public class ReadSourceCode {
 					}
 				}
 			}
-			
+
 			ReadMainFiles.readMainFiles(result);
 			analyzeNonMainJavaFiles(null);
 
@@ -127,12 +126,11 @@ public class ReadSourceCode {
 		}
 	}
 
-	
-	//check if POM file is also changed
+	// if POM ignore. check path of file
 	public static void analyzeNonMainJavaFiles(List<String> nonJavaFiles) {
 		for (String s : nonJavaFiles) {
 			if (s.endsWith(".java")) {
-				System.out.println("tesf#lle wurden ge#ndert :"+s);
+				System.out.println("tesfalle wurden geandert :" + s);
 			} else {
 				// TODO: was mit anderen Dateien. Ignorieren? prio: low
 			}
@@ -152,25 +150,17 @@ public class ReadSourceCode {
 
 			pomDependencies = model.getDependencies();
 
-            for (Dependency dependency : pomDependencies) {
-                System.out.println("Group ID: " + dependency.getGroupId());
-                System.out.println("Artifact ID: " + dependency.getArtifactId());
-                System.out.println("Version: " + dependency.getVersion());
-                System.out.println("-----------------------");
-            }
+			for (Dependency dependency : pomDependencies) {
+				System.out.println("Group ID: " + dependency.getGroupId());
+				System.out.println("Artifact ID: " + dependency.getArtifactId());
+				System.out.println("Version: " + dependency.getVersion());
+				System.out.println("-----------------------");
+			}
 
 		} catch (IOException | XmlPullParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        
-	}
 
-	public static void analyzeExternalImports() {
-		// CompilationUnit cu = StaticJavaParser.parse(file);
-		// TODO: IMPORTANT BEFORE TAG !
-		// QUELLE FUER EXTERNE MODULE
-		// cu.getImports();
-		// System.out.println(cu.getImports());
 	}
 }

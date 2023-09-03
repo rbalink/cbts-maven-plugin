@@ -1,11 +1,13 @@
 package com.tub;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
+import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.stmt.BlockStmt;
 
@@ -16,6 +18,7 @@ public class MainWrapper {
 	private String fileNameTestCode;
 	private Optional<BlockStmt> content;
 	private NodeList<ImportDeclaration> importList;
+	private List<Name> importListeName;
 	private CompilationUnit cu;
 
 	public MainWrapper(SimpleName simpleName, Optional<PackageDeclaration> packageDeclaration,
@@ -74,6 +77,14 @@ public class MainWrapper {
 
 	public void setCu(CompilationUnit cu) {
 		this.cu = cu;
+	}
+
+	public List<Name> getImportListeName() {
+		return importListeName;
+	}
+
+	public void setImportListeName(List<Name> importListeName) {
+		this.importListeName = importListeName;
 	}
 	
 	
