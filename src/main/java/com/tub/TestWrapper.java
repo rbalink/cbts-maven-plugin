@@ -21,6 +21,7 @@ public class TestWrapper {
 	private String cfg;
 	private boolean sideeffectedCode;
 	private boolean unableToMatchSourceCodePath;
+	private MainWrapper mainSourceCode;
 
 	public TestWrapper(SimpleName simpleName, Optional<PackageDeclaration> packageDeclaration,
 			Optional<BlockStmt> optional, String fileName) {
@@ -114,6 +115,16 @@ public class TestWrapper {
 
 	public void setUnableToMatchSourceCodePath(boolean unableToMatchSourceCodePath) {
 		this.unableToMatchSourceCodePath = unableToMatchSourceCodePath;
+	}
+	
+	
+
+	public MainWrapper getMainSourceCode() {
+		return mainSourceCode;
+	}
+
+	public void setMainSourceCode(MainWrapper mainSourceCode) {
+		this.mainSourceCode = mainSourceCode;
 	}
 
 	/**

@@ -1,6 +1,8 @@
 package com.tub;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -8,6 +10,10 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.eclipse.jgit.diff.DiffEntry;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -15,6 +21,8 @@ import com.github.javaparser.ast.CompilationUnit;
 public class ReadSourceCode {
 	public static List<String> nonJavaFiles;
 	public static List<File> effectedJavaFiles;
+	public static List<File> unchangedJavaFiles;
+	public static List<Dependency> pomDependencies;
 
 	/**
 	 * code analysis - CHA, CFG, CDG
@@ -26,10 +34,13 @@ public class ReadSourceCode {
 			List<DiffEntry> gitDiffList) {
 		nonJavaFiles = new ArrayList<String>();
 		effectedJavaFiles = new ArrayList<File>();
+		unchangedJavaFiles = new ArrayList<File>();
 		HashSet<TestWrapper> result = new HashSet<TestWrapper>();
 
+		
+		analyzePOMFile();
+		
 		if (mode.equals("classic")) {
-			analyzePOMFile();
 
 			// compare gitDiff with relevant sourceCode
 			// if equal main source code found - else non-main-java-code
@@ -65,17 +76,49 @@ public class ReadSourceCode {
 			return result;
 
 		} else if (mode.equals("sideeffect")) {
-			analyzePOMFile();
-
-			// externe Imports
-
-			// TODO CHA
-
-			// TODO CFG
-
-			// TODO CDG
-
-			// TODO
+			
+			for (DiffEntry de : gitDiffList) {
+				boolean found = false;
+				Path diffPath = Paths.get(de.getNewPath());
+				// System.out.println("PATHS-DIFF: " + Paths.get(de.getNewPath()));
+				for (int i = 0; i < javaFilesMain.size(); i++) {
+					Path entryPath = Paths.get(javaFilesMain.get(i).getPath());
+					if (entryPath.toString().contains(diffPath.toString())) {
+						found = true;
+						effectedJavaFiles.add(javaFilesMain.get(i));
+						break;
+					}
+				}
+				if (!found) {
+					nonJavaFiles.add(de.getNewPath());
+				}
+			}
+			// filter out all changed objects from effectedJavaFiles
+			for(File file : javaFilesMain) {
+				boolean unchanged = true;
+				for(File file2 : effectedJavaFiles) {
+					if(file2.getPath().equals(file.getPath())){
+						unchanged = false;
+						break;
+					}
+				}
+				if(unchanged) {
+					unchangedJavaFiles.add(file);
+				}
+			}
+			
+			// collect tests of unchangedJavaFiles
+			for (File file : unchangedJavaFiles) {
+				for (TestWrapper tw : testSet) {
+					if (!tw.isUnableToMatchSourceCodePath()) {
+						if (file.getPath().toString().equals(tw.getSourceCodePath().toString())) {
+							result.add(tw);
+						}
+					}
+				}
+			}
+			
+			ReadMainFiles.readMainFiles(result);
 			analyzeNonMainJavaFiles(null);
 
 			return null;
@@ -84,6 +127,8 @@ public class ReadSourceCode {
 		}
 	}
 
+	
+	//check if POM file is also changed
 	public static void analyzeNonMainJavaFiles(List<String> nonJavaFiles) {
 		for (String s : nonJavaFiles) {
 			if (s.endsWith(".java")) {
@@ -94,11 +139,31 @@ public class ReadSourceCode {
 		}
 	}
 
+	/**
+	 * get all POM dependencies
+	 */
 	public static void analyzePOMFile() {
-		String pomPath = CBTSPrototypePlugin.srcFolder.replace("src", "pom.xml");
-		System.out.println(pomPath);
-		// XML Parser
-		// genauen Änderungen -- welche Dependency
+		try {
+			String pomPath = CBTSPrototypePlugin.srcFolder.replace("src", "pom.xml");
+			System.out.println(pomPath);
+			MavenXpp3Reader reader = new MavenXpp3Reader();
+			File pomFile = new File(pomPath);
+			Model model = reader.read(new FileReader(pomFile));
+
+			pomDependencies = model.getDependencies();
+
+            for (Dependency dependency : pomDependencies) {
+                System.out.println("Group ID: " + dependency.getGroupId());
+                System.out.println("Artifact ID: " + dependency.getArtifactId());
+                System.out.println("Version: " + dependency.getVersion());
+                System.out.println("-----------------------");
+            }
+
+		} catch (IOException | XmlPullParserException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
 	}
 
 	public static void analyzeExternalImports() {
