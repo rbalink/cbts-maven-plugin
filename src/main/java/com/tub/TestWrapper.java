@@ -29,6 +29,7 @@ public class TestWrapper {
 		this.path = packageDeclaration;
 		this.content = optional;
 		this.fileNameTestCode = fileName;
+		this.probability = 0;
 		buildPath();
 	}
 
@@ -89,8 +90,8 @@ public class TestWrapper {
 		return probability;
 	}
 
-	public void setProbability(int probability) {
-		this.probability = probability;
+	public void addProbability(int number) {
+		this.probability = this.probability + number;
 	}
 
 	public String getCfg() {
@@ -116,8 +117,6 @@ public class TestWrapper {
 	public void setUnableToMatchSourceCodePath(boolean unableToMatchSourceCodePath) {
 		this.unableToMatchSourceCodePath = unableToMatchSourceCodePath;
 	}
-	
-	
 
 	public MainWrapper getMainSourceCode() {
 		return mainSourceCode;
@@ -165,9 +164,38 @@ public class TestWrapper {
 
 	}
 
-	public String getInfoText() {
-		return "Test: " + this.name.asString() + " --- filename: " + this.fileNameTestCode + " source code path: "
-				+ this.getSourceCodePath();
+	public String getInfoText(String mode) {
+		if (mode.equals("classic")) {
+
+			return "Test: " + this.name.asString() + " --- filename: " + this.fileNameTestCode + " source code path: "
+					+ this.getSourceCodePath();
+		} else if (mode.equals("sideeffect")) {
+			return "Test: " + this.name.asString() + " --- sideeffect probability: " + this.probability + " ("
+					+ probabilityText() + ") --- filename: " + this.fileNameTestCode + " source code path: "
+					+ this.getSourceCodePath();
+		} else {
+			return null;
+		}
+	}
+
+	private String probabilityText() {
+		if (this.probability < 5) {
+			return "LOW";
+		}
+		if (this.probability < 10) {
+			return "MEDIUM";
+		}
+		if (this.probability < 15) {
+			return "HIGH";
+		}
+		if (this.probability < 20) {
+			return "VERY HIGH";
+		}
+		if (this.probability > 29) {
+			return "CRITICAL";
+		} else {
+			return "Undefined";
+		}
 	}
 
 }

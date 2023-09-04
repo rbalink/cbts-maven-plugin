@@ -23,9 +23,10 @@ public class ReadSourceCode {
 	public static List<File> effectedJavaFiles;
 	public static List<File> unchangedJavaFiles;
 	public static List<Dependency> pomDependencies;
+	public static boolean wasPomChanged;
 
 	/**
-	 * code analysis - CHA, CFG, CDG
+	 * code analysis
 	 * 
 	 * @param javaFilesMain
 	 * @param testSet
@@ -35,6 +36,7 @@ public class ReadSourceCode {
 		nonJavaFiles = new ArrayList<String>();
 		effectedJavaFiles = new ArrayList<File>();
 		unchangedJavaFiles = new ArrayList<File>();
+		wasPomChanged = false;
 		HashSet<TestWrapper> result = new HashSet<TestWrapper>();
 
 		analyzePOMFile();
@@ -47,6 +49,9 @@ public class ReadSourceCode {
 			for (DiffEntry de : gitDiffList) {
 				boolean found = false;
 				Path diffPath = Paths.get(de.getNewPath());
+				if (diffPath.toString().contains("pom.xml")) {
+					wasPomChanged = true;
+				}
 				// System.out.println("PATHS-DIFF: " + Paths.get(de.getNewPath()));
 				for (int i = 0; i < javaFilesMain.size(); i++) {
 					Path entryPath = Paths.get(javaFilesMain.get(i).getPath());
@@ -79,6 +84,9 @@ public class ReadSourceCode {
 			for (DiffEntry de : gitDiffList) {
 				boolean found = false;
 				Path diffPath = Paths.get(de.getNewPath());
+				if (diffPath.toString().contains("pom.xml")) {
+					wasPomChanged = true;
+				}
 				// System.out.println("PATHS-DIFF: " + Paths.get(de.getNewPath()));
 				for (int i = 0; i < javaFilesMain.size(); i++) {
 					Path entryPath = Paths.get(javaFilesMain.get(i).getPath());
@@ -117,10 +125,15 @@ public class ReadSourceCode {
 				}
 			}
 
-			ReadMainFiles.readMainFiles(result);
-			analyzeNonMainJavaFiles(null);
+			try {
+				result = ReadMainFiles.readMainFiles(result);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			analyzeNonMainJavaFiles(nonJavaFiles);
 
-			return null;
+			return result;
 		} else {
 			throw new IllegalArgumentException();
 		}
@@ -128,11 +141,15 @@ public class ReadSourceCode {
 
 	// if POM ignore. check path of file
 	public static void analyzeNonMainJavaFiles(List<String> nonJavaFiles) {
-		for (String s : nonJavaFiles) {
-			if (s.endsWith(".java")) {
-				System.out.println("tesfalle wurden geandert :" + s);
-			} else {
-				// TODO: was mit anderen Dateien. Ignorieren? prio: low
+		if (nonJavaFiles != null) {
+			for (String s : nonJavaFiles) {
+				if (s.endsWith(".java")) {
+					System.out.println("Voraussichtliche Testfälle wurden geändert :" + s);
+				} else if (s.contains("config")) {
+					System.out.println("Konfigurationsdatei wurde geändert: " + s);
+				} else {
+					// TODO: andere Dateien. prio: low
+				}
 			}
 		}
 	}
@@ -149,14 +166,13 @@ public class ReadSourceCode {
 			Model model = reader.read(new FileReader(pomFile));
 
 			pomDependencies = model.getDependencies();
-
-			for (Dependency dependency : pomDependencies) {
-				System.out.println("Group ID: " + dependency.getGroupId());
-				System.out.println("Artifact ID: " + dependency.getArtifactId());
-				System.out.println("Version: " + dependency.getVersion());
-				System.out.println("-----------------------");
-			}
-
+			/*
+			 * for (Dependency dependency : pomDependencies) {
+			 * System.out.println("Group ID: " + dependency.getGroupId());
+			 * System.out.println("Artifact ID: " + dependency.getArtifactId());
+			 * System.out.println("Version: " + dependency.getVersion());
+			 * System.out.println("-----------------------"); }
+			 */
 		} catch (IOException | XmlPullParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

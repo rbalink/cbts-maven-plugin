@@ -70,9 +70,11 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 		result = ReadSourceCode.analyzeCode(this.mode, javaFilesMain, testSet, gitDiffList);
 
 		// + + + Step 6 - Output
-		getResultText(result);
+		getResultText(result, this.mode);
 		getLog().info("*** cbts prototype ENDS *** Time Elapsed: " + calculateTime() + " ms");
 
+		String end;
+		end = "end";
 	}
 
 	/**
@@ -84,12 +86,12 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 		String mainFolder = srcFolder + "\\main";
 		String testFolder = srcFolder + "\\test";
 		if (new File(mainFolder).exists()) {
-			//System.out.println("+++ MAIN FOLDER " + mainFolder);
+			// System.out.println("+++ MAIN FOLDER " + mainFolder);
 			javaFilesMain = findJavaFiles(new File(mainFolder));
 		}
 		// test für die Tests
 		if (new File(testFolder).exists()) {
-			//System.out.println("+++ TEST FOLDER " + testFolder);
+			// System.out.println("+++ TEST FOLDER " + testFolder);
 			javaFilesTest = findJavaFiles(new File(testFolder));
 		}
 	}
@@ -251,9 +253,9 @@ public class CBTSPrototypePlugin extends AbstractMojo {
 		}
 	}
 
-	private static void getResultText(HashSet<TestWrapper> results) {
+	private static void getResultText(HashSet<TestWrapper> results, String mode) {
 		for (TestWrapper tw : results) {
-			System.out.println(tw.getInfoText());
+			System.out.println(tw.getInfoText(mode));
 		}
 	}
 
